@@ -39,7 +39,7 @@ class Auth {
 	 *
 	 * @var array
 	 */
-	private $messages = array();
+	private $messages = [];
 
 	/**
 	 * The REST API slug.
@@ -54,33 +54,25 @@ class Auth {
 	public function __construct() {
 		$this->namespace = 'jwt-auth/v1';
 
-		$this->messages = array(
+		$this->messages = [
 			'jwt_auth_no_auth_header'  => __( 'Authorization header not found.', 'jwt-auth' ),
 			'jwt_auth_bad_auth_header' => __( 'Authorization header malformed.', 'jwt-auth' ),
-		);
+		];
 	}
 
 	/**
 	 * Add the endpoints to the API
 	 */
 	public function register_rest_routes() {
-		register_rest_route(
-			$this->namespace,
-			'token',
-			array(
-				'methods'  => 'POST',
-				'callback' => array( $this, 'get_token' ),
-			)
-		);
+		register_rest_route( $this->namespace, 'token', [
+			'methods'  => 'POST',
+			'callback' => [ $this, 'get_token' ],
+		] );
 
-		register_rest_route(
-			$this->namespace,
-			'token/validate',
-			array(
-				'methods'  => 'POST',
-				'callback' => array( $this, 'validate_token' ),
-			)
-		);
+		register_rest_route( $this->namespace, 'token/validate', [
+			'methods'  => 'POST',
+			'callback' => [ $this, 'validate_token' ],
+		] );
 	}
 
 	/**
@@ -90,7 +82,8 @@ class Auth {
 		$enable_cors = defined( 'JWT_AUTH_CORS_ENABLE' ) ? JWT_AUTH_CORS_ENABLE : false;
 
 		if ( $enable_cors ) {
-			$headers = apply_filters( 'jwt_auth_cors_allow_headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization' );
+			$headers = apply_filters( 'jwt_auth_cors_allow_headers',
+				'X-Requested-With, Content-Type, Accept, Origin, Authorization' );
 
 			header( sprintf( 'Access-Control-Allow-Headers: %s', $headers ) );
 		}
@@ -99,16 +92,17 @@ class Auth {
 	/**
 	 * Authenticate user either via wp_authenticate or custom auth (e.g: OTP).
 	 *
-	 * @param string $username The username.
-	 * @param string $password The password.
-	 * @param mixed  $custom_auth The custom auth data (if any).
+	 * @param  string  $username  The username.
+	 * @param  string  $password  The password.
+	 * @param  mixed  $custom_auth  The custom auth data (if any).
 	 *
 	 * @return WP_User|WP_Error $user Returns WP_User object if success, or WP_Error if failed.
 	 */
 	public function authenticate_user( $username, $password, $custom_auth = '' ) {
 		// If using custom authentication.
 		if ( $custom_auth ) {
-			$custom_auth_error = new WP_Error( 'jwt_auth_custom_auth_failed', __( 'Custom authentication failed.', 'jwt-auth' ) );
+			$custom_auth_error = new WP_Error( 'jwt_auth_custom_auth_failed',
+				__( 'Custom authentication failed.', 'jwt-auth' ) );
 
 			/**
 			 * Do your own custom authentication and return the result through this filter.
@@ -125,7 +119,8 @@ class Auth {
 	/**
 	 * Get token by sending POST request to jwt-auth/v1/token.
 	 *
-	 * @param WP_REST_Request $request The request.
+	 * @param  WP_REST_Request  $request  The request.
+	 *
 	 * @return WP_REST_Response The response.
 	 */
 	public function get_token( WP_REST_Request $request ) {
@@ -137,15 +132,13 @@ class Auth {
 
 		// First thing, check the secret key if not exist return a error.
 		if ( ! $secret_key ) {
-			return new WP_REST_Response(
-				array(
-					'success'    => false,
-					'statusCode' => 403,
-					'code'       => 'jwt_auth_bad_config',
-					'message'    => __( 'JWT is not configurated properly.', 'jwt-auth' ),
-					'data'       => array(),
-				)
-			);
+			return new WP_REST_Response( [
+				'success'    => false,
+				'statusCode' => 403,
+				'code'       => 'jwt_auth_bad_config',
+				'message'    => __( 'JWT is not configurated properly.', 'jwt-auth' ),
+				'data'       => [],
+			] );
 		}
 
 		$user = $this->authenticate_user( $username, $password, $custom_auth );
@@ -154,15 +147,13 @@ class Auth {
 		if ( is_wp_error( $user ) ) {
 			$error_code = $user->get_error_code();
 
-			return new WP_REST_Response(
-				array(
-					'success'    => false,
-					'statusCode' => 403,
-					'code'       => $error_code,
-					'message'    => strip_tags( $user->get_error_message( $error_code ) ),
-					'data'       => array(),
-				)
-			);
+			return new WP_REST_Response( [
+				'success'    => false,
+				'statusCode' => 403,
+				'code'       => $error_code,
+				'message'    => strip_tags( $user->get_error_message( $error_code ) ),
+				'data'       => [],
+			] );
 		}
 
 		// Valid credentials, the user exists, let's generate the token.
@@ -172,8 +163,8 @@ class Auth {
 	/**
 	 * Generate token
 	 *
-	 * @param WP_User $user The WP_User object.
-	 * @param bool    $return_raw Whether or not to return as raw token string.
+	 * @param  WP_User  $user  The WP_User object.
+	 * @param  bool  $return_raw  Whether or not to return as raw token string.
 	 *
 	 * @return WP_REST_Response|string Return as raw token string or as a formatted WP_REST_Response.
 	 */
@@ -185,17 +176,17 @@ class Auth {
 		$expire     = $issued_at + ( DAY_IN_SECONDS * 7 );
 		$expire     = apply_filters( 'jwt_auth_expire', $expire, $issued_at );
 
-		$payload = array(
+		$payload = [
 			'iss'  => $this->get_iss(),
 			'iat'  => $issued_at,
 			'nbf'  => $not_before,
 			'exp'  => $expire,
-			'data' => array(
-				'user' => array(
+			'data' => [
+				'user' => [
 					'id' => $user->ID,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$alg = $this->get_alg();
 
@@ -208,12 +199,12 @@ class Auth {
 		}
 
 		// The token is signed, now create object with basic info of the user.
-		$response = array(
+		$response = [
 			'success'    => true,
 			'statusCode' => 200,
 			'code'       => 'jwt_auth_valid_credential',
 			'message'    => __( 'Credential is valid', 'jwt-auth' ),
-			'data'       => array(
+			'data'       => [
 				'token'       => $token,
 				'id'          => $user->ID,
 				'email'       => $user->user_email,
@@ -221,8 +212,8 @@ class Auth {
 				'firstName'   => $user->first_name,
 				'lastName'    => $user->last_name,
 				'displayName' => $user->display_name,
-			),
-		);
+			],
+		];
 
 		// Let the user modify the data before send it back.
 		return apply_filters( 'jwt_auth_valid_credential_response', $response, $user );
@@ -251,7 +242,8 @@ class Auth {
 	/**
 	 * Determine if given response is an error response.
 	 *
-	 * @param mixed $response The response.
+	 * @param  mixed  $response  The response.
+	 *
 	 * @return boolean
 	 */
 	public function is_error_response( $response ) {
@@ -268,7 +260,7 @@ class Auth {
 	 * Main validation function, this function try to get the Autentication
 	 * headers and decoded.
 	 *
-	 * @param bool $output Whether to only return the payload or not.
+	 * @param  bool  $output  Whether to only return the payload or not.
 	 *
 	 * @return WP_REST_Response | Array Returns WP_REST_Response or token's $payload.
 	 */
@@ -285,81 +277,71 @@ class Auth {
 		}
 
 		if ( ! $auth ) {
-			return new WP_REST_Response(
-				array(
-					'success'    => false,
-					'statusCode' => 403,
-					'code'       => 'jwt_auth_no_auth_header',
-					'message'    => $this->messages['jwt_auth_no_auth_header'],
-					'data'       => array(),
-				)
-			);
+			return new WP_REST_Response( [
+				'success'    => false,
+				'statusCode' => 403,
+				'code'       => 'jwt_auth_no_auth_header',
+				'message'    => $this->messages['jwt_auth_no_auth_header'],
+				'data'       => [],
+			] );
 		}
 
 		/**
 		 * The HTTP_AUTHORIZATION is present, verify the format.
 		 * If the format is wrong return the user.
 		 */
-		list($token) = sscanf( $auth, 'Bearer %s' );
+		[ $token ] = sscanf( $auth, 'Bearer %s' );
 
 		if ( ! $token ) {
-			return new WP_REST_Response(
-				array(
-					'success'    => false,
-					'statusCode' => 403,
-					'code'       => 'jwt_auth_bad_auth_header',
-					'message'    => $this->messages['jwt_auth_bad_auth_header'],
-					'data'       => array(),
-				)
-			);
+			return new WP_REST_Response( [
+				'success'    => false,
+				'statusCode' => 403,
+				'code'       => 'jwt_auth_bad_auth_header',
+				'message'    => $this->messages['jwt_auth_bad_auth_header'],
+				'data'       => [],
+			] );
 		}
 
 		// Get the Secret Key.
 		$secret_key = defined( 'JWT_AUTH_SECRET_KEY' ) ? JWT_AUTH_SECRET_KEY : false;
 
 		if ( ! $secret_key ) {
-			return new WP_REST_Response(
-				array(
-					'success'    => false,
-					'statusCode' => 403,
-					'code'       => 'jwt_auth_bad_config',
-					'message'    => __( 'JWT is not configurated properly.', 'jwt-auth' ),
-					'data'       => array(),
-				)
-			);
+			return new WP_REST_Response( [
+				'success'    => false,
+				'statusCode' => 403,
+				'code'       => 'jwt_auth_bad_config',
+				'message'    => __( 'JWT is not configurated properly.', 'jwt-auth' ),
+				'data'       => [],
+			] );
 		}
 
 		// Try to decode the token.
 		try {
 			$alg     = $this->get_alg();
-			$payload = JWT::decode( $token, $secret_key, array( $alg ) );
+			$payload = JWT::decode( $token, $secret_key, [ $alg ] );
 
 			// The Token is decoded now validate the iss.
 			if ( $payload->iss !== $this->get_iss() ) {
 				// The iss do not match, return error.
-				return new WP_REST_Response(
-					array(
-						'success'    => false,
-						'statusCode' => 403,
-						'code'       => 'jwt_auth_bad_iss',
-						'message'    => __( 'The iss do not match with this server.', 'jwt-auth' ),
-						'data'       => array(),
-					)
-				);
+				return new WP_REST_Response( [
+					'success'    => false,
+					'statusCode' => 403,
+					'code'       => 'jwt_auth_bad_iss',
+					'message'    => __( 'The iss do not match with this server.', 'jwt-auth' ),
+					'data'       => [],
+				] );
 			}
 
 			// Check the user id existence in the token.
 			if ( ! isset( $payload->data->user->id ) ) {
 				// No user id in the token, abort!!
-				return new WP_REST_Response(
-					array(
-						'success'    => false,
-						'statusCode' => 403,
-						'code'       => 'jwt_auth_bad_request',
-						'message'    => __( 'User ID not found in the token.', 'jwt-auth' ),
-						'data'       => array(),
-					)
-				);
+				return new WP_REST_Response( [
+					'success'    => false,
+					'statusCode' => 403,
+					'code'       => 'jwt_auth_bad_request',
+					'message'    => __( 'User ID not found in the token.', 'jwt-auth' ),
+					'data'       => [],
+				] );
 			}
 
 			// So far so good, check if the given user id exists in db.
@@ -367,15 +349,13 @@ class Auth {
 
 			if ( ! $user ) {
 				// No user id in the token, abort!!
-				return new WP_REST_Response(
-					array(
-						'success'    => false,
-						'statusCode' => 403,
-						'code'       => 'jwt_auth_user_not_found',
-						'message'    => __( "User doesn't exist", 'jwt-auth' ),
-						'data'       => array(),
-					)
-				);
+				return new WP_REST_Response( [
+					'success'    => false,
+					'statusCode' => 403,
+					'code'       => 'jwt_auth_user_not_found',
+					'message'    => __( "User doesn't exist", 'jwt-auth' ),
+					'data'       => [],
+				] );
 			}
 
 			// Everything looks good return the token if $output is set to false.
@@ -383,13 +363,13 @@ class Auth {
 				return $payload;
 			}
 
-			$response = array(
+			$response = [
 				'success'    => true,
 				'statusCode' => 200,
 				'code'       => 'jwt_auth_valid_token',
 				'message'    => __( 'Token is valid', 'jwt-auth' ),
-				'data'       => array(),
-			);
+				'data'       => [],
+			];
 
 			$response = apply_filters( 'jwt_auth_valid_token_response', $response, $user, $token, $payload );
 
@@ -397,22 +377,21 @@ class Auth {
 			return new WP_REST_Response( $response );
 		} catch ( Exception $e ) {
 			// Something is wrong when trying to decode the token, return error response.
-			return new WP_REST_Response(
-				array(
-					'success'    => false,
-					'statusCode' => 403,
-					'code'       => 'jwt_auth_invalid_token',
-					'message'    => $e->getMessage(),
-					'data'       => array(),
-				)
-			);
+			return new WP_REST_Response( [
+				'success'    => false,
+				'statusCode' => 403,
+				'code'       => 'jwt_auth_invalid_token',
+				'message'    => $e->getMessage(),
+				'data'       => [],
+			] );
 		}
 	}
 
 	/**
 	 * This is our Middleware to try to authenticate the user according to the token sent.
 	 *
-	 * @param int|bool $user_id User ID if one has been determined, false otherwise.
+	 * @param  int|bool  $user_id  User ID if one has been determined, false otherwise.
+	 *
 	 * @return int|bool User ID if one has been determined, false otherwise.
 	 */
 	public function determine_current_user( $user_id ) {
@@ -441,18 +420,23 @@ class Auth {
 			return $user_id;
 		}
 
+		// check if user is logged in already
+		$user_id = wp_validate_auth_cookie( $_COOKIE[ LOGGED_IN_COOKIE ], 'logged_in' );
+		if ( $user_id ) {
+			return $user_id;
+		}
+
 		$payload = $this->validate_token( false );
 
 		// If $payload is an error response, then return the default $user_id.
 		if ( $this->is_error_response( $payload ) ) {
 			if ( 'jwt_auth_no_auth_header' === $payload->data['code'] ||
-				'jwt_auth_bad_auth_header' === $payload->data['code']
-			) {
+			     'jwt_auth_bad_auth_header' === $payload->data['code'] ) {
 				$request_uri = $_SERVER['REQUEST_URI'];
 
 				if ( '/' . $this->rest_api_slug . '/jwt-auth/v1/token' !== $request_uri ) {
 					// Whitelist some endpoints by default.
-					$default_whitelist = array(
+					$default_whitelist = [
 						// WooCommerce namespace.
 						'/' . $this->rest_api_slug . '/wc/',
 						'/' . $this->rest_api_slug . '/wc-auth/',
@@ -460,7 +444,7 @@ class Auth {
 
 						// This endpoint is used by WooCommerce analytics.
 						'/wp-json/wp/v2/users/me',
-					);
+					];
 
 					$default_whitelist = apply_filters( 'jwt_auth_default_whitelist', $default_whitelist );
 
@@ -497,7 +481,7 @@ class Auth {
 	 * @return bool
 	 */
 	public function is_whitelisted() {
-		$whitelist = apply_filters( 'jwt_auth_whitelist', array() );
+		$whitelist = apply_filters( 'jwt_auth_whitelist', [] );
 
 		if ( empty( $whitelist ) || ! is_array( $whitelist ) ) {
 			return false;
@@ -515,8 +499,17 @@ class Auth {
 		$request_uri = untrailingslashit( $request_uri );
 
 		foreach ( $whitelist as $endpoint ) {
-			// If the endpoint doesn't contain * sign.
-			if ( false === stripos( $endpoint, '*' ) ) {
+
+            // check if our whitelist endpoing is a Regex
+			set_error_handler( function () {
+			}, E_WARNING );
+			$isRegularExpression = preg_match( $endpoint, "" ) !== false;
+			restore_error_handler();
+			if ( $isRegularExpression ) {
+				if ( preg_match( $endpoint, $request_uri ) ) {
+					return true;
+				}
+			} elseif ( false === stripos( $endpoint, '*' ) ) {
 				$endpoint = untrailingslashit( $endpoint );
 
 				if ( $endpoint === $request_uri ) {
@@ -542,9 +535,9 @@ class Auth {
 	 * Filter to hook the rest_pre_dispatch, if there is an error in the request
 	 * send it, if there is no error just continue with the current request.
 	 *
-	 * @param mixed           $result Can be anything a normal endpoint can return, or null to not hijack the request.
-	 * @param WP_REST_Server  $server Server instance.
-	 * @param WP_REST_Request $request The request.
+	 * @param  mixed  $result  Can be anything a normal endpoint can return, or null to not hijack the request.
+	 * @param  WP_REST_Server  $server  Server instance.
+	 * @param  WP_REST_Request  $request  The request.
 	 *
 	 * @return mixed $result
 	 */

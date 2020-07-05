@@ -160,6 +160,8 @@ If the token is valid, the API call flow will continue as always.
 
 Every call to the server (except the token creation some default whitelist) will be intercepted. However, you might need to whitelist some endpoints. You can use `jwt_auth_whitelist` filter to do it. Please simply add this filter directly (without hook). Or, you can add it to `plugins_loaded`. Adding this filter inside `init` (or later) will not work.
 
+v1.4.0: now supports Regex
+
 ```php
 add_filter( 'jwt_auth_whitelist', function ( $endpoints ) {
 	return array(
@@ -167,6 +169,7 @@ add_filter( 'jwt_auth_whitelist', function ( $endpoints ) {
 		'/wp-json/custom/v1/otp/*',
 		'/wp-json/custom/v1/account/check',
 		'/wp-json/custom/v1/register',
+                '/^\/wp-json\/wp\/v2.*$/'
 	);
 } );
 ```

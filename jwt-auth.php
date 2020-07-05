@@ -1,13 +1,12 @@
 <?php
 /**
  * Plugin Name: JWT Auth
- * Plugin URI:  https://github.com/usefulteam/jwt-auth
+ * Plugin URI:  https://github.com/aircodedesign/jwt-auth
  * Description: WordPress JWT Authentication.
- * Version:     1.3.0
- * Author:      Useful Team
- * Author URI:  https://usefulteam.com
+ * Version:     1.4.0
+ * Author:      Air Code Design inc. (original author: Useful Team)
+ * Author URI:  https://aircodedesign.com
  * License:     GPL-3.0
- * License URI: https://oss.ninja/gpl-3.0?organization=Useful%20Team&project=jwt-auth
  * Text Domain: jwt-auth
  * Domain Path: /languages
  *

@@ -13,7 +13,7 @@ License URI: https://oss.ninja/gpl-3.0?organization=Useful%20Team&project=WordPr
 Create JSON Web Token Authentication in WordPress.
 
 == Description ==
-WordPress JSON Web Token Authentication allows you to do REST API authentication via token. It is a simple, non-complex, and easy to use. This plugin probably is the most convenient way to do JWT Authentication in WordPress. 
+WordPress JSON Web Token Authentication allows you to do REST API authentication via token. It is a simple, non-complex, and easy to use. This plugin probably is the most convenient way to do JWT Authentication in WordPress.
 
 - Support & question: [WordPress support forum](https://wordpress.org/support/plugin/jwt-auth/)
 - Reporting plugin's bug: [GitHub issues tracker](https://github.com/usefulteam/jwt-auth/issues)
@@ -123,8 +123,8 @@ It will validates the user credentials, and returns success response including a
 `
 
 Once you get the token, you must store it somewhere in your application. It can be:
-- using **cookie** 
-- or using **localstorage** 
+- using **cookie**
+- or using **localstorage**
 - or using a wrapper like [localForage](https://localforage.github.io/localForage/) or [PouchDB](https://pouchdb.com/)
 - or using local database like SQLite or [Hive](https://docs.hivedb.dev/#/)
 - or your choice based on app you develop ;)
@@ -146,6 +146,8 @@ If the token is valid, the API call flow will continue as always.
 ## Whitelisting Endpoints
 
 Every call to the server (except the token creation some default whitelist) will be intercepted. However, you might need to whitelist some endpoints. You can use `jwt_auth_whitelist` filter to do it. Please simply add this filter directly (without hook). Or, you can add it to `plugins_loaded`. Adding this filter inside `init` (or later) will not work.
+
+v.1.4.0: now support Regex
 
 `
 add_filter( 'jwt_auth_whitelist', function ( $endpoints ) {
