@@ -27,4 +27,11 @@ require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/class-auth.php';
 require __DIR__ . '/class-setup.php';
 
+// Disable updating this plugin
+add_filter('site_transient_update_plugins', 'remove_update_notification');
+function remove_update_notification($value) {
+	unset($value->response[ plugin_basename(__FILE__) ]);
+	return $value;
+}
+
 new JWTAuth\Setup();
